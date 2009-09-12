@@ -6,6 +6,8 @@ require 'net/https'
 require 'active_support'
 
 class Gixen
+  # GixenError is raised when there's a problem with the response, or
+  # the Gixen server has returned an error.
   class GixenError < RuntimeError
     def initialize(code, text)
       super(text)
@@ -20,15 +22,14 @@ class Gixen
     end
   end
 
-  # :nodoc:
-  CORE_GIXEN_URL='https://www.gixen.com/api.php'
+  CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
 
   # Create a Gixen object for interacting with the user's Gixen
   # account, placing snipes, deleting snipes, and determining what
   # snipes have been set up.
   # 
-  # * +user+ is the user's eBay username
-  # * +pass+ is the user's eBay password
+  # [+user+] an eBay username
+  # [+pass+] an eBay password
   # 
   # Gixen uses eBay authentication for its own authentication, so it
   # doesn't have to have a different user/pass for its users.
@@ -38,12 +39,10 @@ class Gixen
   end
 
   private
-  # :nodoc:
   def gixen_url
     "#{CORE_GIXEN_URL}?username=#{@username}&password=#{@password}&notags=1"
   end
 
-  # :nodoc:
   def submit(params)
     url = "#{gixen_url}&#{params.to_param}"
     uri = URI.parse(url)
@@ -58,7 +57,6 @@ class Gixen
     File.expand_path(File.dirname(__FILE__) + "/gixen.pem")
   end
 
-  # :nodoc:
   def parse_response(resp)
     data = resp.body
     if data =~ /^ERROR \(([0-9]+)\): (.*)$/
@@ -69,13 +67,15 @@ class Gixen
   end
 
   public
-  # Place a snipe on an +item+ (the auction item #) for +bid+ (string amount, for example "23.50", with no currency)
-  #
+  # Place a snipe on an +item+ (the auction item #) for +bid+ (string amount).
+  # [+item+] the item number of the listing on eBay
+  # [+bid+] a string amount of currency-neutral money, for example "23.50". The currency bid in will be the currency of the listing
+  # [+options+] A collection of optional parameters for setting snipe meta-data.
   # Optional parameters include:
-  # * <tt>snipegroup => {group number}</tt>, e.g. <tt>snipegroup => 1</tt> (default: 0, no groups used)
-  # * <tt>quantity => {number}</tt> (default: 1, single item auction) <b>[_obsolete_]</b>
-  # * <tt>bidoffset => {seconds before end}</tt> (3, 6, 8, 10 or 15. Default value is 6)
-  # * <tt>bidoffsetmirror => {seconds before end}</tt> (same as above, just for mirror server)
+  # * <tt>:snipegroup => {group number}</tt>, e.g. <tt>:snipegroup => 1</tt> (default: 0, no groups used)
+  # * <tt>:quantity => {number}</tt> (default: 1, single item auction) <b>[_obsolete_]</b>
+  # * <tt>:bidoffset => {seconds before end}</tt> (3, 6, 8, 10 or 15. Default value is 6)
+  # * <tt>:bidoffsetmirror => {seconds before end}</tt> (same as above, just for mirror server)
   def snipe(item, bid, options = {})
     response = submit({:itemid => item, :maxbid => bid}.merge(options))
   end
