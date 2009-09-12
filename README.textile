@@ -1,0 +1,11 @@
+<h2>Gixen API Library</h2>
+
+This is a simple library to allow access to the Gixen API for setting and deleting eBay snipes.
+
+In order to use the Gixen API, you must be a paid user of Gixen, but it's a VERY inexpensive site.
+
+Documentation is <a href="http://docs.github.com">available here</a>.
+
+Enjoy!
+
+--  Morgan Schweers, Cyber<b>FOX</b>!
