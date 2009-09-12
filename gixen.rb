@@ -20,6 +20,7 @@ class Gixen
     end
   end
 
+  # :nodoc:
   CORE_GIXEN_URL='https://www.gixen.com/api.php'
 
   # Create a Gixen object for interacting with the user's Gixen
@@ -37,12 +38,12 @@ class Gixen
   end
 
   private
-  # :nodoc
+  # :nodoc:
   def gixen_url
     "#{CORE_GIXEN_URL}?username=#{@username}&password=#{@password}&notags=1"
   end
 
-  # :nodoc
+  # :nodoc:
   def submit(params)
     url = "#{gixen_url}&#{params.to_param}"
     uri = URI.parse(url)
@@ -57,7 +58,7 @@ class Gixen
     File.expand_path(File.dirname(__FILE__) + "/gixen.pem")
   end
 
-  # :nodoc
+  # :nodoc:
   def parse_response(resp)
     data = resp.body
     if data =~ /^ERROR \(([0-9]+)\): (.*)$/
@@ -68,7 +69,7 @@ class Gixen
   end
 
   public
-  # Place a snipe on an +item+ (the auction item #) for +bid+ (string amount, e.g. "23.50", no currency)
+  # Place a snipe on an +item+ (the auction item #) for +bid+ (string amount, for example "23.50", with no currency)
   #
   # Optional parameters include:
   # * <tt>snipegroup => {group number}</tt>, e.g. <tt>snipegroup => 1</tt> (default: 0, no groups used)
