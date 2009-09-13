@@ -15,6 +15,7 @@ class GixenTest < Test::Unit::TestCase
 <br />|#!#|987654321|#!#|1252806079|#!#|12.34|#!#|S|#!#|Skipped|#!#|A Skipped Tested Auction|#!#|0|#!#|1|#!#|6
 <br />|#!#|314159265|#!#|1252807311|#!#|98.76|#!#|D|#!#|Completed|#!#|A Completed Test Auction|#!#|0|#!#|1|#!#|6
 EOMOCK
+  BAD_LISTINGS = LISTINGS.collect{|x| "#{x.strip}|#!#|NewField|#!#|OtherNewField"}.join("\r\n")
   MAIN_LISTINGS = LISTINGS + "\r\n<br />OK MAIN LISTED\r\n"
   MIRROR_LISTINGS = LISTINGS + "\r\n<br />OK MIRROR LISTED\r\n"
 
@@ -41,6 +42,7 @@ EOMOCK
         result = @gixen.main_snipes
       end
       assert_equal 101, thrown.code
+      assert_equal '101 could_not_log_in - COULD NOT LOG IN', thrown.to_s
     end
   end
 
@@ -77,6 +79,24 @@ EOMOCK
     should "succeed" do
       result = @gixen.unsnipe('123456789')
       assert_equal true, result
+    end
+  end
+
+  context "Getting the list of snipes on the main server" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock(BAD_LISTINGS, :listsnipesmain => 1)
+    end
+
+    should "still return 3 results when weird things happen" do
+      result = @gixen.main_snipes
+      assert_equal 3, result.length
+    end
+
+    should "put unexpected entries into hash entries named for their column number" do
+      result = @gixen.main_snipes
+      assert_equal 'NewField', result.first[10]
+      assert_equal 'OtherNewField', result.first[11]
     end
   end
 
@@ -148,4 +168,18 @@ EOMOCK
       assert_equal 6, result.length
     end
   end
+
+  context "Setting a snipe while verifying the SSL certificate" do
+    setup do
+      @gixen = Gixen.new('test', 'test', true)
+      mock("OK 123456789 ADDED\r\n", :itemid => '123456789', :maxbid => '98.76')
+    end
+
+    should "succeed" do
+      result = @gixen.snipe('123456789', '98.76')
+      assert_equal true, result
+    end
+  end
 end
+
+

@@ -29,9 +29,10 @@ class Gixen
   # 
   # Gixen uses eBay authentication for its users, so it doesn't have
   # to have a different user/pass for its users.
-  def initialize(user, pass)
+  def initialize(user, pass, validate_ssl = false)
     @username = user
     @password = pass
+    @validate_ssl = validate_ssl
   end
 
   private
@@ -44,9 +45,12 @@ class Gixen
     uri = URI.parse(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true if uri.scheme == 'https' # enable SSL/TLS
-    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-#    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-#    http.ca_file = pem_file
+    if @validate_ssl
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      http.ca_file = pem_file
+    else
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    end
     http.get("#{uri.path}?#{uri.query}")
   end
 
@@ -56,6 +60,7 @@ class Gixen
 
   def parse_response(resp)
     data = resp.body
+    data.strip! if data
     if data =~ /^ERROR \(([0-9]+)\): (.*)$/
       error_code = $1
       error_text = $2
