@@ -59,8 +59,9 @@ class Gixen
     uri = URI.parse(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true if uri.scheme == 'https' # enable SSL/TLS
-    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    http.ca_file = pem_file
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+#    http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+#    http.ca_file = pem_file
     http.get("#{uri.path}?#{uri.query}")
   end
 
@@ -109,7 +110,7 @@ class Gixen
   # if there is any server-side problem.
   def snipe(item, bid, options = {})
     response = submit({:itemid => item, :maxbid => bid}.merge(options))
-    body = parse_response(response)
+    body = parse_response(response).strip
     !!(body =~ /^OK #{item} ADDED$/)
   end
 
@@ -120,7 +121,7 @@ class Gixen
   # if there is any server-side problem.
   def unsnipe(item)
     response = submit({:ditemid => item})
-    body = parse_response(response)
+    body = parse_response(response).strip
     !!(body =~ /^OK #{item} DELETED$/)
   end
 
