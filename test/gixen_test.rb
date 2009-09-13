@@ -10,6 +10,14 @@ class GixenTest < Test::Unit::TestCase
   @@prefix = Gixen::CORE_GIXEN_URL + "?username=test&password=test&notags=1"
   @@bad_prefix = Gixen::CORE_GIXEN_URL + "?username=test&password=incorrect&notags=1"
   BAD_LOGIN = "ERROR (101): COULD NOT LOG IN"
+  LISTINGS = <<EOMOCK
+<br />|#!#|123456789|#!#|1252807311|#!#|98.76|#!#|N|#!#||#!#|A Simple Testing Auction|#!#|0|#!#|1|#!#|6
+<br />|#!#|987654321|#!#|1252806079|#!#|12.34|#!#|S|#!#|Skipped|#!#|A Skipped Tested Auction|#!#|0|#!#|1|#!#|6
+<br />|#!#|314159265|#!#|1252807311|#!#|98.76|#!#|D|#!#|Completed|#!#|A Completed Test Auction|#!#|0|#!#|1|#!#|6
+EOMOCK
+  MAIN_LISTINGS = LISTINGS + "\n<br />OK MAIN LISTED\n"
+  MIRROR_LISTINGS = LISTINGS + "\n<br />OK MIRROR LISTED\n"
+
   FakeWeb.allow_net_connect = false
 
   def mock(body, options)
@@ -57,6 +65,63 @@ class GixenTest < Test::Unit::TestCase
     should "succeed" do
       result = @gixen.snipe('123456789', '98.76')
       assert_equal true, result
+    end
+  end
+
+  context "Getting the list of snipes on the main server" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock(MAIN_LISTINGS, :listsnipesmain => 1)
+    end
+
+    should "return 3 results" do
+      result = @gixen.main_snipes
+      assert_equal 3, result.length
+    end
+
+    should "return a first result with itemid 123456789" do
+      result = @gixen.main_snipes
+      assert_equal '123456789', result.first[:itemid]
+    end
+
+    should "return a last result with itemid 314159265" do
+      result = @gixen.main_snipes
+      assert_equal '314159265', result.last[:itemid]
+    end
+  end
+
+  context "Getting the list of snipes on the mirror server" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock(MIRROR_LISTINGS, :listsnipesmirror => 1)
+    end
+
+    should "return 3 results" do
+      result = @gixen.mirror_snipes
+      assert_equal 3, result.length
+    end
+
+    should "return a first result with itemid 123456789" do
+      result = @gixen.mirror_snipes
+      assert_equal '123456789', result.first[:itemid]
+    end
+
+    should "return a last result with itemid 314159265" do
+      result = @gixen.mirror_snipes
+      assert_equal '314159265', result.last[:itemid]
+    end
+  end
+
+  context "Getting the list of snipes on both servers" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock(MAIN_LISTINGS, :listsnipesmain => 1)
+      mock(MIRROR_LISTINGS, :listsnipesmirror => 1)
+    end
+
+    should "return 6 results" do
+      result = @gixen.snipes
+      assert_equal 6, result.length
     end
   end
 end

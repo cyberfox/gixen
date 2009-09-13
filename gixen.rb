@@ -24,6 +24,17 @@ class Gixen
 
   CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
 
+  LISTING_FORMAT = [:break,
+                    :itemid,
+                    :endtime,
+                    :maxbid,
+                    :status,
+                    :message,
+                    :title,
+                    :snipegroup,
+                    :quantity,
+                    :bidoffset]
+
   # Create a Gixen object for interacting with the user's Gixen
   # account, placing snipes, deleting snipes, and determining what
   # snipes have been set up.
@@ -67,6 +78,21 @@ class Gixen
     data
   end
 
+  def handle_snipes_list(body)
+    body.inject([]) do |accum, line|
+      line.strip!
+      hash = {}
+      line.split("|#!#|").each_with_index do |entry, index|
+        if index < LISTING_FORMAT.length
+          hash[LISTING_FORMAT[index]] = entry
+        else
+          hash[index] = entry
+        end
+      end unless line =~ %r%^<br.*/>OK M(AIN|IRROR) LISTED$%
+      hash.empty? ? accum : (accum << hash)
+    end
+  end
+
   public
   # Place a snipe on an +item+ (the auction item #) for +bid+ (string amount).
   # [+item+] the item number of the listing on eBay
@@ -90,22 +116,43 @@ class Gixen
   # Remove a snipe from an +item+ (the auction item #).
   def unsnipe(item)
     response = submit({:ditemid => item})
+    body = parse_response(response)
+    !!(body =~ /^OK #{item} DELETED$/)
   end
 
-  # Lists all snipes set on any Gixen server.
+  # Lists all snipes set, skipped, or done on any Gixen server.
+  # 
+  # @return [Array of Hash] an array where each entry is a hash
+  # containing all the info for a given snipe, an empty array if no
+  # auctions are listed on either the main Gixen server or the Gixen
+  # Mirror server.  It raises a GixenError if there is a server-side
+  # problem.
   def snipes
-    response = main_snipes + mirror_snipes
+    main_snipes + mirror_snipes
   end
 
-  # Lists all snipes currently set on Gixen's main server.
+  # Lists all snipes currently set set, skipped, or done on Gixen's main server.
+  # 
+  # @return [Array of Hash] an array where each entry is a hash
+  # containing all the info for a given snipe, an empty array if none
+  # are listed on the main Gixen server.  It raises a GixenError if
+  # there is a server-side problem.
   def main_snipes
     response = submit({:listsnipesmain => 1})
-    parse_response(response)
+    body = parse_response(response)
+    handle_snipes_list(body)
   end
 
-  # List all snipes currently set on Gixen's mirror server.
+  # List all snipes currently set set, skipped, or done on Gixen's mirror server.
+  # 
+  # @return [Array of Hash] an array where each entry is a hash
+  # containing all the info for a given snipe, an empty array if none
+  # are listed on the Gixen Mirror server.  It raises a GixenError if
+  # there is a server-side problem.
   def mirror_snipes
     response = submit({:listsnipesmirror => 1})
+    body = parse_response(response)
+    handle_snipes_list(body)
   end
 
   # Normally the snipes that are completed are still listed when
@@ -113,5 +160,6 @@ class Gixen
   # listings, so the list of snipes is just active snipes.
   def purge
     response = submit({:purgecompleted => 1})
+    body = parse_response(response)
   end
 end
