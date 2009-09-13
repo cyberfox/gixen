@@ -9,6 +9,7 @@ require 'gixen_error'
 class Gixen
   CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
 
+  #:nodoc:
   LISTING_FORMAT = [:break,
                     :itemid,
                     :endtime,
@@ -26,6 +27,7 @@ class Gixen
   # 
   # [+user+] an eBay username
   # [+pass+] an eBay password
+  # [+validate_ssl+] true requests validation against the gixen cert file, false presumes the SSL is valid.  Defaults to false.
   # 
   # Gixen uses eBay authentication for its users, so it doesn't have
   # to have a different user/pass for its users.
@@ -84,6 +86,12 @@ class Gixen
     end
   end
 
+  def sourcify_hashes(hash_list, mirror = false)
+    hash_list.each do |h|
+      h[:mirror] = mirror
+    end
+  end
+
   public
   # Place a snipe on an +item+ (the auction item #) for +bid+ (string amount).
   # [+item+] the item number of the listing on eBay
@@ -120,10 +128,15 @@ class Gixen
   # @return [array of hashes] an array where each entry is a hash
   # containing all the info for a given snipe, an empty array if no
   # auctions are listed on either the main Gixen server or the Gixen
-  # Mirror server.  It raises a GixenError if there is a server-side
-  # problem.
+  # Mirror server.
+  # 
+  # An additional field is added, :mirror, which is either true or
+  # false, depending on if the item hash came from the mirror server
+  # or not.
+  # 
+  # It raises a GixenError if there is a server-side problem.
   def snipes
-    main_snipes + mirror_snipes
+    sourcify_hashes(main_snipes) + sourcify_hashes(mirror_snipes, true)
   end
 
   # Lists all snipes currently set set, skipped, or done on Gixen's main server.

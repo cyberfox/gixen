@@ -31,6 +31,10 @@ EOMOCK
     FakeWeb.register_uri(:get, mock_url, :body => body)
   end
 
+  def teardown
+    FakeWeb.clean_registry
+  end
+
   context "Using a bad password to talk to Gixen" do
     setup do
       @gixen = Gixen.new('test', 'incorrect')
@@ -166,6 +170,16 @@ EOMOCK
     should "return 6 results" do
       result = @gixen.snipes
       assert_equal 6, result.length
+    end
+
+    should "return 3 results with :mirror => true" do
+      result = @gixen.snipes
+      assert_equal 3, result.select {|x| x[:mirror] }.length
+    end
+
+    should "return 3 results with :mirror => false" do
+      result = @gixen.snipes
+      assert_equal 3, result.select {|x| x[:mirror] == false }.length
     end
   end
 
