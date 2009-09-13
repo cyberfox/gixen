@@ -12,6 +12,11 @@ class GixenTest < Test::Unit::TestCase
   BAD_LOGIN = "ERROR (101): COULD NOT LOG IN"
   FakeWeb.allow_net_connect = false
 
+  def mock(body, options)
+    mock_url = "#{@@prefix}&#{options.to_param}"
+    FakeWeb.register_uri(:get, mock_url, :body => body)
+  end
+
   def mock_bad_password(body, options)
     mock_url = "#{@@bad_prefix}&#{options.to_param}"
     FakeWeb.register_uri(:get, mock_url, :body => body)
@@ -28,6 +33,30 @@ class GixenTest < Test::Unit::TestCase
         result = @gixen.main_snipes
       end
       assert_equal 101, thrown.code
+    end
+  end
+
+  context "Receiving an invalid response for a snipe set" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock('', :itemid => '123456789', :maxbid => '98.76')
+    end
+
+    should "fail" do
+      result = @gixen.snipe('123456789', '98.76')
+      assert_equal false, result
+    end
+  end
+
+  context "Adding a snipe" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock('OK 123456789 ADDED', :itemid => '123456789', :maxbid => '98.76')
+    end
+
+    should "succeed" do
+      result = @gixen.snipe('123456789', '98.76')
+      assert_equal true, result
     end
   end
 end

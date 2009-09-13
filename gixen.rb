@@ -64,6 +64,7 @@ class Gixen
       error_text = $2
       raise GixenError.new(error_code.to_i, error_text)
     end
+    data
   end
 
   public
@@ -76,8 +77,14 @@ class Gixen
   # * <tt>:quantity => <i>number</i></tt> (default: 1, single item auction) <b>[_obsolete_]</b>
   # * <tt>:bidoffset => <i>seconds before end</i></tt> (3, 6, 8, 10 or 15. Default value is 6)
   # * <tt>:bidoffsetmirror => <i>seconds before end</i></tt> (same as above, just for mirror server)
+  #
+  # @return [boolean] true if the snipe was successfully set, false if
+  # something other than 'OK ADDED' came back, and throws a GixenError
+  # if there is any serverside problem.
   def snipe(item, bid, options = {})
     response = submit({:itemid => item, :maxbid => bid}.merge(options))
+    body = parse_response(response)
+    !!(body =~ /^OK #{item} ADDED$/)
   end
 
   # Remove a snipe from an +item+ (the auction item #).
