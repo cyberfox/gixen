@@ -4,25 +4,21 @@ require 'uri'
 require 'cgi'
 require 'net/https'
 require 'active_support'
+require 'gixen_error'
 
 class Gixen
-  # GixenError is raised when there's a problem with the response, or
-  # the Gixen server has returned an error.
-  class GixenError < RuntimeError
-    def initialize(code, text)
-      super(text)
-      @code = code
-      @message = text
-    end
-
-    attr_reader :code, :message
-
-    def to_s
-      "#{@code} - #{@message}"
-    end
-  end
-
   CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
+
+  LISTING_FORMAT = [:break,
+                    :itemid,
+                    :endtime,
+                    :maxbid,
+                    :status,
+                    :message,
+                    :title,
+                    :snipegroup,
+                    :quantity,
+                    :bidoffset]
 
   # Create a Gixen object for interacting with the user's Gixen
   # account, placing snipes, deleting snipes, and determining what
@@ -39,17 +35,6 @@ class Gixen
   end
 
   private
-  LISTING_FORMAT = [:break,
-                    :itemid,
-                    :endtime,
-                    :maxbid,
-                    :status,
-                    :message,
-                    :title,
-                    :snipegroup,
-                    :quantity,
-                    :bidoffset]
-
   def gixen_url
     "#{CORE_GIXEN_URL}?username=#{@username}&password=#{@password}&notags=1"
   end
@@ -168,6 +153,7 @@ class Gixen
   # raises a GixenError if there is a server-side problem.
   def purge
     response = submit({:purgecompleted => 1})
-    body = parse_response(response)
+    body = parse_response(response).strip
+    !!(body =~ /^OK COMPLETEDPURGED$/)
   end
 end

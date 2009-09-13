@@ -9,14 +9,14 @@ require 'shoulda'
 class GixenTest < Test::Unit::TestCase
   @@prefix = Gixen::CORE_GIXEN_URL + "?username=test&password=test&notags=1"
   @@bad_prefix = Gixen::CORE_GIXEN_URL + "?username=test&password=incorrect&notags=1"
-  BAD_LOGIN = "ERROR (101): COULD NOT LOG IN"
+  BAD_LOGIN = "ERROR (101): COULD NOT LOG IN\r\n"
   LISTINGS = <<EOMOCK
 <br />|#!#|123456789|#!#|1252807311|#!#|98.76|#!#|N|#!#||#!#|A Simple Testing Auction|#!#|0|#!#|1|#!#|6
 <br />|#!#|987654321|#!#|1252806079|#!#|12.34|#!#|S|#!#|Skipped|#!#|A Skipped Tested Auction|#!#|0|#!#|1|#!#|6
 <br />|#!#|314159265|#!#|1252807311|#!#|98.76|#!#|D|#!#|Completed|#!#|A Completed Test Auction|#!#|0|#!#|1|#!#|6
 EOMOCK
-  MAIN_LISTINGS = LISTINGS + "\n<br />OK MAIN LISTED\n"
-  MIRROR_LISTINGS = LISTINGS + "\n<br />OK MIRROR LISTED\n"
+  MAIN_LISTINGS = LISTINGS + "\r\n<br />OK MAIN LISTED\r\n"
+  MIRROR_LISTINGS = LISTINGS + "\r\n<br />OK MIRROR LISTED\r\n"
 
   FakeWeb.allow_net_connect = false
 
@@ -59,11 +59,23 @@ EOMOCK
   context "Adding a snipe" do
     setup do
       @gixen = Gixen.new('test', 'test')
-      mock('OK 123456789 ADDED', :itemid => '123456789', :maxbid => '98.76')
+      mock("OK 123456789 ADDED\r\n", :itemid => '123456789', :maxbid => '98.76')
     end
 
     should "succeed" do
       result = @gixen.snipe('123456789', '98.76')
+      assert_equal true, result
+    end
+  end
+
+  context "Deleting a snipe" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock("OK 123456789 DELETED\r\n", :ditemid => '123456789')
+    end
+
+    should "succeed" do
+      result = @gixen.unsnipe('123456789')
       assert_equal true, result
     end
   end
@@ -109,6 +121,18 @@ EOMOCK
     should "return a last result with itemid 314159265" do
       result = @gixen.mirror_snipes
       assert_equal '314159265', result.last[:itemid]
+    end
+  end
+
+  context "Purging the list of items that are ended" do
+    setup do
+      @gixen = Gixen.new('test', 'test')
+      mock("OK COMPLETEDPURGED\r\n", :purgecompleted => 1)
+    end
+
+    should "succeed" do
+      result = @gixen.purge
+      assert_equal true, result
     end
   end
 
