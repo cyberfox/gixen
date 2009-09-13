@@ -31,8 +31,8 @@ class Gixen
   # [+user+] an eBay username
   # [+pass+] an eBay password
   # 
-  # Gixen uses eBay authentication for its own authentication, so it
-  # doesn't have to have a different user/pass for its users.
+  # Gixen uses eBay authentication for its users, so it doesn't have
+  # to have a different user/pass for its users.
   def initialize(user, pass)
     @username = user
     @password = pass
