@@ -24,17 +24,6 @@ class Gixen
 
   CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
 
-  LISTING_FORMAT = [:break,
-                    :itemid,
-                    :endtime,
-                    :maxbid,
-                    :status,
-                    :message,
-                    :title,
-                    :snipegroup,
-                    :quantity,
-                    :bidoffset]
-
   # Create a Gixen object for interacting with the user's Gixen
   # account, placing snipes, deleting snipes, and determining what
   # snipes have been set up.
@@ -50,6 +39,17 @@ class Gixen
   end
 
   private
+  LISTING_FORMAT = [:break,
+                    :itemid,
+                    :endtime,
+                    :maxbid,
+                    :status,
+                    :message,
+                    :title,
+                    :snipegroup,
+                    :quantity,
+                    :bidoffset]
+
   def gixen_url
     "#{CORE_GIXEN_URL}?username=#{@username}&password=#{@password}&notags=1"
   end
@@ -106,7 +106,7 @@ class Gixen
   #
   # @return [boolean] true if the snipe was successfully set, false if
   # something other than 'OK ADDED' came back, and throws a GixenError
-  # if there is any serverside problem.
+  # if there is any server-side problem.
   def snipe(item, bid, options = {})
     response = submit({:itemid => item, :maxbid => bid}.merge(options))
     body = parse_response(response)
@@ -114,6 +114,10 @@ class Gixen
   end
 
   # Remove a snipe from an +item+ (the auction item #).
+  #
+  # @return [boolean] true if the snipe was successfully deleted, false if
+  # something other than 'OK DELETED' came back, and throws a GixenError
+  # if there is any server-side problem.
   def unsnipe(item)
     response = submit({:ditemid => item})
     body = parse_response(response)
@@ -122,7 +126,7 @@ class Gixen
 
   # Lists all snipes set, skipped, or done on any Gixen server.
   # 
-  # @return [Array of Hash] an array where each entry is a hash
+  # @return [array of hashes] an array where each entry is a hash
   # containing all the info for a given snipe, an empty array if no
   # auctions are listed on either the main Gixen server or the Gixen
   # Mirror server.  It raises a GixenError if there is a server-side
@@ -133,7 +137,7 @@ class Gixen
 
   # Lists all snipes currently set set, skipped, or done on Gixen's main server.
   # 
-  # @return [Array of Hash] an array where each entry is a hash
+  # @return [array of hashes] an array where each entry is a hash
   # containing all the info for a given snipe, an empty array if none
   # are listed on the main Gixen server.  It raises a GixenError if
   # there is a server-side problem.
@@ -145,7 +149,7 @@ class Gixen
 
   # List all snipes currently set set, skipped, or done on Gixen's mirror server.
   # 
-  # @return [Array of Hash] an array where each entry is a hash
+  # @return [array of hashes] an array where each entry is a hash
   # containing all the info for a given snipe, an empty array if none
   # are listed on the Gixen Mirror server.  It raises a GixenError if
   # there is a server-side problem.
@@ -158,6 +162,9 @@ class Gixen
   # Normally the snipes that are completed are still listed when
   # retrieving snipes from the server; this method clears completed
   # listings, so the list of snipes is just active snipes.
+  #
+  # @return [boolean] true if the purge completed successfully.  It
+  # raises a GixenError if there is a server-side problem.
   def purge
     response = submit({:purgecompleted => 1})
     body = parse_response(response)
