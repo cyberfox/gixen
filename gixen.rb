@@ -72,10 +72,10 @@ class Gixen
   # [+bid+] a string amount of currency-neutral money, for example "23.50". The currency bid in will be the currency of the listing
   # [+options+] A collection of optional parameters for setting snipe meta-data.
   # Optional parameters include:
-  # * <tt>:snipegroup => {group number}</tt>, e.g. <tt>:snipegroup => 1</tt> (default: 0, no groups used)
-  # * <tt>:quantity => {number}</tt> (default: 1, single item auction) <b>[_obsolete_]</b>
-  # * <tt>:bidoffset => {seconds before end}</tt> (3, 6, 8, 10 or 15. Default value is 6)
-  # * <tt>:bidoffsetmirror => {seconds before end}</tt> (same as above, just for mirror server)
+  # * <tt>:snipegroup => <i>group number</i></tt>, e.g. <tt>:snipegroup => 1</tt> (default: 0, no groups used)
+  # * <tt>:quantity => <i>number</i></tt> (default: 1, single item auction) <b>[_obsolete_]</b>
+  # * <tt>:bidoffset => <i>seconds before end</i></tt> (3, 6, 8, 10 or 15. Default value is 6)
+  # * <tt>:bidoffsetmirror => <i>seconds before end</i></tt> (same as above, just for mirror server)
   def snipe(item, bid, options = {})
     response = submit({:itemid => item, :maxbid => bid}.merge(options))
   end
