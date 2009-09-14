@@ -3,8 +3,9 @@
 require 'uri'
 require 'cgi'
 require 'net/https'
-require 'active_support'
+
 require 'gixen_error'
+require 'to_query'
 
 class Gixen
   CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
@@ -43,7 +44,7 @@ class Gixen
   end
 
   def submit(params)
-    url = "#{gixen_url}&#{params.to_param}"
+    url = "#{gixen_url}&#{params.to_query}"
     uri = URI.parse(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true if uri.scheme == 'https' # enable SSL/TLS

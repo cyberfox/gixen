@@ -5,6 +5,7 @@ require 'rubygems'
 require 'gixen'
 require 'fake_web'
 require 'shoulda'
+require 'to_query'
 
 class GixenTest < Test::Unit::TestCase
   @@prefix = Gixen::CORE_GIXEN_URL + "?username=test&password=test&notags=1"
@@ -22,12 +23,12 @@ EOMOCK
   FakeWeb.allow_net_connect = false
 
   def mock(body, options)
-    mock_url = "#{@@prefix}&#{options.to_param}"
+    mock_url = "#{@@prefix}&#{options.to_query}"
     FakeWeb.register_uri(:get, mock_url, :body => body)
   end
 
   def mock_bad_password(body, options)
-    mock_url = "#{@@bad_prefix}&#{options.to_param}"
+    mock_url = "#{@@bad_prefix}&#{options.to_query}"
     FakeWeb.register_uri(:get, mock_url, :body => body)
   end
 
