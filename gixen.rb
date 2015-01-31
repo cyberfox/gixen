@@ -5,7 +5,12 @@ require 'cgi'
 require 'net/https'
 
 require 'gixen_error'
-require 'to_query'
+begin
+  require 'to_query'
+rescue LoadError => err
+  require 'active_support'
+  require 'active_support/all'
+end
 
 class Gixen
   CORE_GIXEN_URL='https://www.gixen.com/api.php' #:nodoc:
@@ -73,7 +78,7 @@ class Gixen
   end
 
   def handle_snipes_list(body)
-    body.inject([]) do |accum, line|
+    body.split("\n").inject([]) do |accum, line|
       line.strip!
       hash = {}
       line.split("|#!#|").each_with_index do |entry, index|
